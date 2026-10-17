@@ -1,9 +1,7 @@
 from rest_framework import serializers
-from .models import User, Profile
-
+from .models import User, Profile, FitnessActivity
 
 class RegistrationSerializer(serializers.ModelSerializer):
-
     password = serializers.CharField(write_only=True)
     age = serializers.IntegerField()
     height = serializers.FloatField()
@@ -45,3 +43,38 @@ class RegistrationSerializer(serializers.ModelSerializer):
         )
 
         return user
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(
+        source='user.username',
+        read_only=True
+    )
+    email = serializers.EmailField(
+        source='user.email',
+        read_only=True
+    )
+
+    class Meta:
+        model = Profile
+        fields = [
+            'username',
+            'email',
+            'age',
+            'height',
+            'weight',
+            'goal',
+        ]
+
+class FitnessActivitySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = FitnessActivity
+        fields = [
+            'id',
+            'steps',
+            'workout_duration',
+            'calories_burned',
+            'activity_date',
+        ]
+        read_only_fields = ['id']

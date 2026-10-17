@@ -22,3 +22,17 @@ class Profile(models.Model):
 
     def __str__(self):
         return f"{self.user.username}'s Profile"
+
+class FitnessActivity(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="activities"
+    )
+    steps = models.PositiveIntegerField(default=0)
+    workout_duration = models.PositiveIntegerField(default=0)
+    calories_burned = models.PositiveIntegerField(default=0)
+    activity_date = models.DateField()
+
+    def __str__(self):
+        return f"{self.user.username} - {self.activity_date}"
