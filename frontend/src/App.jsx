@@ -1,11 +1,30 @@
 import { useState } from "react";
 import "./App.css";
+import Login from "./Login";
 
 function App() {
+  const [token, setToken] = useState(
+    () => sessionStorage.getItem("accessToken")
+  );
+
   const [steps, setSteps] = useState(8500);
   const [workout, setWorkout] = useState(45);
   const [calories, setCalories] = useState(350);
   const [bmi, setBmi] = useState(24.49);
+
+  function handleLogin(accessToken) {
+    sessionStorage.setItem("accessToken", accessToken);
+    setToken(accessToken);
+  }
+
+  function handleLogout() {
+    sessionStorage.removeItem("accessToken");
+    setToken(null);
+  }
+
+  if (!token) {
+    return <Login onLogin={handleLogin} />;
+  }
 
   return (
     <div className="app">
@@ -34,6 +53,9 @@ function App() {
           <div className="user-badge">
             <div className="avatar">S</div>
             <span>My Dashboard</span>
+            <button type="button" onClick={handleLogout}>
+              Logout
+            </button>
           </div>
         </header>
 
@@ -105,8 +127,8 @@ function App() {
               <span className="stat-icon">⚖</span>
             </div>
             <h2>{bmi}</h2>
-            <p>Healthy weight category</p>
-            <span className="status-pill">Healthy weight</span>
+            <p>BMI calculated from your profile</p>
+            <span className="status-pill">BMI</span>
           </article>
         </section>
 
@@ -160,7 +182,7 @@ function App() {
             <div className="bmi-display">
               <span>Your BMI</span>
               <strong>{bmi}</strong>
-              <span className="status-pill">Healthy weight</span>
+              <span className="status-pill">BMI screening measure</span>
             </div>
 
             <p className="health-note">
@@ -173,7 +195,10 @@ function App() {
         <section className="demo-controls">
           <div>
             <h2>Dashboard Preview Controls</h2>
-            <p>Change these sample values to see React update the interface.</p>
+            <p>
+              These are temporary sample values. We will connect real
+              backend data next.
+            </p>
           </div>
 
           <div className="controls-grid">
