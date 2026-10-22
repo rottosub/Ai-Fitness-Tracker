@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "./Login.css";
 
-function Login({ onLogin }) {
+function Login({ onLogin, onSwitchToRegister }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -24,7 +24,7 @@ function Login({ onLogin }) {
       const data = await response.json();
 
       if (!response.ok) {
-        setError("Invalid username or password.");
+        setError(data.detail || "Invalid username or password.");
         return;
       }
 
@@ -33,7 +33,7 @@ function Login({ onLogin }) {
         return;
       }
 
-      onLogin(data.access);
+      onLogin(data.access, data.refresh);
     } catch {
       setError("Unable to connect to the server. Check that Django is running.");
     } finally {
@@ -82,7 +82,16 @@ function Login({ onLogin }) {
           </button>
         </form>
 
-        <p className="login-footer">AI Fitness Tracker</p>
+        <p className="login-footer">
+          Don't have an account?{" "}
+          <button
+            type="button"
+            className="link-button"
+            onClick={onSwitchToRegister}
+          >
+            Create one
+          </button>
+        </p>
       </section>
     </main>
   );

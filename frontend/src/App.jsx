@@ -1,11 +1,13 @@
 import { useState } from "react";
 import "./App.css";
 import Login from "./Login";
+import Register from "./Register";
 
 function App() {
   const [token, setToken] = useState(
     () => sessionStorage.getItem("accessToken")
   );
+  const [authView, setAuthView] = useState("login");
 
   const [steps, setSteps] = useState(8500);
   const [workout, setWorkout] = useState(45);
@@ -20,10 +22,24 @@ function App() {
   function handleLogout() {
     sessionStorage.removeItem("accessToken");
     setToken(null);
+    setAuthView("login");
   }
 
   if (!token) {
-    return <Login onLogin={handleLogin} />;
+    if (authView === "register") {
+      return (
+        <Register
+          onSwitchToLogin={() => setAuthView("login")}
+          onRegisterSuccess={() => setAuthView("login")}
+        />
+      );
+    }
+    return (
+      <Login
+        onLogin={handleLogin}
+        onSwitchToRegister={() => setAuthView("register")}
+      />
+    );
   }
 
   return (
