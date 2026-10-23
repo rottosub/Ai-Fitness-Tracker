@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import "./App.css";
 import Login from "./Login";
 import Register from "./Register";
+
+const API_BASE = "http://127.0.0.1:8000/api";
 
 function App() {
   const [token, setToken] = useState(
@@ -9,21 +11,97 @@ function App() {
   );
   const [authView, setAuthView] = useState("login");
 
-  const [steps, setSteps] = useState(8500);
-  const [workout, setWorkout] = useState(45);
-  const [calories, setCalories] = useState(350);
-  const [bmi, setBmi] = useState(24.49);
+  // Live state from backend
+  const [profile, setProfile] = useState(null);
+  const [bmiData, setBmiData] = useState(null);
+  const [summary, setSummary] = useState({
+    total_steps: 0,
+    total_workout_minutes: 0,
+    total_calories_burned: 0,
+    activity_records: 0,
+    average_steps: 0,
+    average_workout_minutes: 0,
+    average_calories_burned: 0,
+  });
+  const [activities, setActivities] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [fetchError, setFetchError] = useState("");
 
-  function handleLogin(accessToken) {
+  const handleLogout = useCallback(() => {
+    sessionStorage.removeItem("accessToken");
+    sessionStorage.removeItem("refreshToken");
+    setToken(null);
+    setProfile(null);
+    setBmiData(null);
+    setActivities([]);
+    setAuthView("login");
+  }, []);
+
+  function handleLogin(accessToken, refreshToken) {
     sessionStorage.setItem("accessToken", accessToken);
+    if (refreshToken) {
+      sessionStorage.setItem("refreshToken", refreshToken);
+    }
     setToken(accessToken);
   }
 
-  function handleLogout() {
-    sessionStorage.removeItem("accessToken");
-    setToken(null);
-    setAuthView("login");
-  }
+  const fetchDashboardData = useCallback(async () => {
+    if (!token) return;
+
+    setLoading(true);
+    setFetchError("");
+
+    const authHeaders = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    };
+
+    try {
+      const [profileRes, bmiRes, summaryRes, activitiesRes] = await Promise.all([
+        fetch(`${API_BASE}/profile/`, { headers: authHeaders }),
+        fetch(`${API_BASE}/bmi/`, { headers: authHeaders }),
+        fetch(`${API_BASE}/summary/`, { headers: authHeaders }),
+        fetch(`${API_BASE}/activities/`, { headers: authHeaders }),
+      ]);
+
+      if (
+        profileRes.status === 401 ||
+        bmiRes.status === 401 ||
+        summaryRes.status === 401 ||
+        activitiesRes.status === 401
+      ) {
+        handleLogout();
+        return;
+      }
+
+      if (profileRes.ok) {
+        const pData = await profileRes.json();
+        setProfile(pData);
+      }
+      if (bmiRes.ok) {
+        const bData = await bmiRes.json();
+        setBmiData(bData);
+      }
+      if (summaryRes.ok) {
+        const sData = await summaryRes.json();
+        setSummary(sData);
+      }
+      if (activitiesRes.ok) {
+        const aData = await activitiesRes.json();
+        setActivities(aData);
+      }
+    } catch {
+      setFetchError("Unable to reach the server. Make sure the Django backend is active.");
+    } finally {
+      setLoading(false);
+    }
+  }, [token, handleLogout]);
+
+  useEffect(() => {
+    if (token) {
+      fetchDashboardData();
+    }
+  }, [token, fetchDashboardData]);
 
   if (!token) {
     if (authView === "register") {
@@ -41,6 +119,8 @@ function App() {
       />
     );
   }
+
+  const userInitial = profile?.username ? profile.username[0].toUpperCase() : "U";
 
   return (
     <div className="app">
@@ -67,21 +147,32 @@ function App() {
           </div>
 
           <div className="user-badge">
-            <div className="avatar">S</div>
-            <span>My Dashboard</span>
-            <button type="button" onClick={handleLogout}>
+            <div className="avatar">{userInitial}</div>
+            <div className="user-meta">
+              <strong>{profile?.username || "My Dashboard"}</strong>
+              {profile?.goal && <small className="user-goal-pill">{profile.goal}</small>}
+            </div>
+            <button type="button" onClick={handleLogout} className="logout-btn">
               Logout
             </button>
           </div>
         </header>
 
+        {fetchError && (
+          <div className="banner-alert" role="alert">
+            <span>⚠️ {fetchError}</span>
+            <button type="button" onClick={fetchDashboardData}>Retry</button>
+          </div>
+        )}
+
+        {loading && <p className="loading-bar">Fetching live fitness data...</p>}
+
         <section className="welcome-card" id="dashboard">
           <div>
-            <p className="eyebrow">YOUR PROGRESS MATTERS</p>
+            <p className="eyebrow">WELCOME BACK{profile?.username ? `, ${profile.username.toUpperCase()}` : ""}</p>
             <h2>Small steps. Stronger you.</h2>
             <p>
-              Track your movement, monitor your workouts,
-              and keep working toward your fitness goals.
+              Goal: <strong>{profile?.goal || "Stay Active & Healthy"}</strong> · Weight: {profile?.weight || "--"} kg · Height: {profile?.height || "--"} cm
             </p>
           </div>
 
@@ -91,15 +182,15 @@ function App() {
         <section className="stats-grid">
           <article className="stat-card">
             <div className="stat-top">
-              <span>Daily Steps</span>
+              <span>Total Steps</span>
               <span className="stat-icon">👟</span>
             </div>
-            <h2>{steps.toLocaleString()}</h2>
+            <h2>{(summary.total_steps || 0).toLocaleString()}</h2>
             <p>Steps recorded</p>
             <div className="progress-track">
               <div
                 className="progress-fill"
-                style={{ width: `${Math.min((steps / 10000) * 100, 100)}%` }}
+                style={{ width: `${Math.min(((summary.total_steps || 0) / 10000) * 100, 100)}%` }}
               />
             </div>
             <small>Goal: 10,000 steps</small>
@@ -110,15 +201,15 @@ function App() {
               <span>Workout Duration</span>
               <span className="stat-icon">⏱</span>
             </div>
-            <h2>{workout} <span className="unit">min</span></h2>
-            <p>Workout completed</p>
+            <h2>{summary.total_workout_minutes || 0} <span className="unit">min</span></h2>
+            <p>Total exercise completed</p>
             <div className="progress-track">
               <div
                 className="progress-fill"
-                style={{ width: `${Math.min((workout / 60) * 100, 100)}%` }}
+                style={{ width: `${Math.min(((summary.total_workout_minutes || 0) / 60) * 100, 100)}%` }}
               />
             </div>
-            <small>Goal: 60 minutes</small>
+            <small>Avg: {summary.average_workout_minutes || 0} min/session</small>
           </article>
 
           <article className="stat-card">
@@ -126,15 +217,15 @@ function App() {
               <span>Calories Burned</span>
               <span className="stat-icon">🔥</span>
             </div>
-            <h2>{calories} <span className="unit">kcal</span></h2>
-            <p>Estimated activity burn</p>
+            <h2>{(summary.total_calories_burned || 0).toLocaleString()} <span className="unit">kcal</span></h2>
+            <p>Total activity burn</p>
             <div className="progress-track">
               <div
                 className="progress-fill"
-                style={{ width: `${Math.min((calories / 500) * 100, 100)}%` }}
+                style={{ width: `${Math.min(((summary.total_calories_burned || 0) / 500) * 100, 100)}%` }}
               />
             </div>
-            <small>Goal: 500 kcal</small>
+            <small>{summary.activity_records} total sessions logged</small>
           </article>
 
           <article className="stat-card">
@@ -142,9 +233,9 @@ function App() {
               <span>Body Mass Index</span>
               <span className="stat-icon">⚖</span>
             </div>
-            <h2>{bmi}</h2>
-            <p>BMI calculated from your profile</p>
-            <span className="status-pill">BMI</span>
+            <h2>{bmiData?.bmi || "--"}</h2>
+            <p>{bmiData?.category || "Calculated from your profile"}</p>
+            <span className="status-pill">{bmiData?.category || "BMI"}</span>
           </article>
         </section>
 
@@ -153,37 +244,30 @@ function App() {
             <div className="panel-heading">
               <div>
                 <p className="eyebrow">YOUR MOVEMENT</p>
-                <h2>Activity Overview</h2>
+                <h2>Recent Activities</h2>
               </div>
-              <span className="date-label">Sample data</span>
+              <span className="date-label">{activities.length} entries</span>
             </div>
 
-            <div className="activity-row">
-              <div className="activity-symbol">👟</div>
-              <div className="activity-info">
-                <strong>Walking</strong>
-                <span>Daily movement</span>
+            {activities.length === 0 ? (
+              <div className="empty-state">
+                <p>No activity logs recorded yet.</p>
+                <small>Log your daily steps and workouts to start tracking.</small>
               </div>
-              <strong>{steps.toLocaleString()} steps</strong>
-            </div>
-
-            <div className="activity-row">
-              <div className="activity-symbol">🏋️</div>
-              <div className="activity-info">
-                <strong>Workout</strong>
-                <span>Exercise session</span>
+            ) : (
+              <div className="activity-list">
+                {activities.slice(0, 5).map((act) => (
+                  <div key={act.id} className="activity-row">
+                    <div className="activity-symbol">🏃</div>
+                    <div className="activity-info">
+                      <strong>{act.activity_date}</strong>
+                      <span>{act.steps.toLocaleString()} steps · {act.workout_duration} mins</span>
+                    </div>
+                    <strong>{act.calories_burned} kcal</strong>
+                  </div>
+                ))}
               </div>
-              <strong>{workout} min</strong>
-            </div>
-
-            <div className="activity-row">
-              <div className="activity-symbol">🔥</div>
-              <div className="activity-info">
-                <strong>Energy expenditure</strong>
-                <span>Estimated calories</span>
-              </div>
-              <strong>{calories} kcal</strong>
-            </div>
+            )}
           </article>
 
           <article className="panel" id="health">
@@ -196,69 +280,16 @@ function App() {
             </div>
 
             <div className="bmi-display">
-              <span>Your BMI</span>
-              <strong>{bmi}</strong>
-              <span className="status-pill">BMI screening measure</span>
+              <span>Calculated BMI</span>
+              <strong>{bmiData?.bmi || "--"}</strong>
+              <span className="status-pill">{bmiData?.category || "Awaiting profile data"}</span>
             </div>
 
             <p className="health-note">
-              BMI is a screening measure based on height and weight.
-              It does not measure body fat directly or diagnose health.
+              BMI is a screening measure based on height ({profile?.height || "--"} cm) and weight ({profile?.weight || "--"} kg).
+              It classifies weight status into healthy, underweight, overweight, or obesity categories.
             </p>
           </article>
-        </section>
-
-        <section className="demo-controls">
-          <div>
-            <h2>Dashboard Preview Controls</h2>
-            <p>
-              These are temporary sample values. We will connect real
-              backend data next.
-            </p>
-          </div>
-
-          <div className="controls-grid">
-            <label>
-              Steps
-              <input
-                type="number"
-                min="0"
-                value={steps}
-                onChange={(e) => setSteps(Math.max(0, Number(e.target.value)))}
-              />
-            </label>
-
-            <label>
-              Workout minutes
-              <input
-                type="number"
-                min="0"
-                value={workout}
-                onChange={(e) => setWorkout(Math.max(0, Number(e.target.value)))}
-              />
-            </label>
-
-            <label>
-              Calories burned
-              <input
-                type="number"
-                min="0"
-                value={calories}
-                onChange={(e) => setCalories(Math.max(0, Number(e.target.value)))}
-              />
-            </label>
-
-            <label>
-              BMI
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={bmi}
-                onChange={(e) => setBmi(Math.max(0, Number(e.target.value)))}
-              />
-            </label>
-          </div>
         </section>
 
         <footer>
