@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import "./App.css";
 import Login from "./Login";
 import Register from "./Register";
+import LogActivityModal from "./LogActivityModal";
 
 const API_BASE = "http://127.0.0.1:8000/api";
 
@@ -26,6 +27,7 @@ function App() {
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(false);
   const [fetchError, setFetchError] = useState("");
+  const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
 
   const handleLogout = useCallback(() => {
     sessionStorage.removeItem("accessToken");
@@ -103,6 +105,29 @@ function App() {
     }
   }, [token, fetchDashboardData]);
 
+  async function handleDeleteActivity(activityId) {
+    if (!window.confirm("Are you sure you want to remove this activity log?")) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/activities/${activityId}/`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (res.ok || res.status === 204) {
+        fetchDashboardData();
+      } else {
+        alert("Failed to delete activity log.");
+      }
+    } catch {
+      alert("Error deleting activity. Check backend connection.");
+    }
+  }
+
   if (!token) {
     if (authView === "register") {
       return (
@@ -168,12 +193,19 @@ function App() {
         {loading && <p className="loading-bar">Fetching live fitness data...</p>}
 
         <section className="welcome-card" id="dashboard">
-          <div>
+          <div className="welcome-content">
             <p className="eyebrow">WELCOME BACK{profile?.username ? `, ${profile.username.toUpperCase()}` : ""}</p>
             <h2>Small steps. Stronger you.</h2>
             <p>
               Goal: <strong>{profile?.goal || "Stay Active & Healthy"}</strong> · Weight: {profile?.weight || "--"} kg · Height: {profile?.height || "--"} cm
             </p>
+            <button
+              type="button"
+              className="quick-log-btn"
+              onClick={() => setIsActivityModalOpen(true)}
+            >
+              + Log New Workout
+            </button>
           </div>
 
           <div className="welcome-icon">✦</div>
@@ -246,7 +278,15 @@ function App() {
                 <p className="eyebrow">YOUR MOVEMENT</p>
                 <h2>Recent Activities</h2>
               </div>
-              <span className="date-label">{activities.length} entries</span>
+              <div className="panel-actions">
+                <button
+                  type="button"
+                  className="action-btn"
+                  onClick={() => setIsActivityModalOpen(true)}
+                >
+                  + Log Workout
+                </button>
+              </div>
             </div>
 
             {activities.length === 0 ? (
@@ -256,14 +296,24 @@ function App() {
               </div>
             ) : (
               <div className="activity-list">
-                {activities.slice(0, 5).map((act) => (
+                {activities.slice(0, 6).map((act) => (
                   <div key={act.id} className="activity-row">
                     <div className="activity-symbol">🏃</div>
                     <div className="activity-info">
                       <strong>{act.activity_date}</strong>
                       <span>{act.steps.toLocaleString()} steps · {act.workout_duration} mins</span>
                     </div>
-                    <strong>{act.calories_burned} kcal</strong>
+                    <div className="activity-actions">
+                      <strong className="calories-badge">{act.calories_burned} kcal</strong>
+                      <button
+                        type="button"
+                        className="delete-activity-btn"
+                        onClick={() => handleDeleteActivity(act.id)}
+                        title="Delete log"
+                      >
+                        ✕
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -291,6 +341,13 @@ function App() {
             </p>
           </article>
         </section>
+
+        <LogActivityModal
+          isOpen={isActivityModalOpen}
+          onClose={() => setIsActivityModalOpen(false)}
+          onActivityLogged={fetchDashboardData}
+          token={token}
+        />
 
         <footer>
           AI Fitness Tracker · Keep moving at your own pace.
