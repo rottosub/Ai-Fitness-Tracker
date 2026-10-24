@@ -3,6 +3,7 @@ import "./App.css";
 import Login from "./Login";
 import Register from "./Register";
 import LogActivityModal from "./LogActivityModal";
+import AICoachCard from "./AICoachCard";
 
 const API_BASE = "http://127.0.0.1:8000/api";
 
@@ -154,6 +155,7 @@ function App() {
 
         <nav>
           <a className="active" href="#dashboard">Dashboard</a>
+          <a href="#ai-coach">AI Fitness Coach</a>
           <a href="#activity">Activity</a>
           <a href="#health">Health Metrics</a>
         </nav>
@@ -210,6 +212,12 @@ function App() {
 
           <div className="welcome-icon">✦</div>
         </section>
+
+        {/* AI Recommendations Panel */}
+        <AICoachCard
+          token={token}
+          onActivityLoggedTrigger={summary.total_steps}
+        />
 
         <section className="stats-grid">
           <article className="stat-card">

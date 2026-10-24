@@ -677,3 +677,314 @@ footer {
   font-size: 13px;
   font-weight: 600;
 }
+
+
+/* AI Coach Card & Engine Styles */
+.ai-coach-panel {
+  background: #ffffff;
+  border: 1px solid #d4e5d8;
+  border-radius: 18px;
+  padding: 26px 28px;
+  margin-bottom: 24px;
+  box-shadow: 0 10px 30px rgba(36, 75, 53, 0.05);
+}
+
+.ai-coach-panel.loading,
+.ai-coach-panel.error {
+  text-align: center;
+  padding: 35px 20px;
+}
+
+.ai-loading-spinner {
+  color: #244b35;
+  font-weight: 700;
+  font-size: 15px;
+  animation: pulse 1.6s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.ai-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.ai-badge {
+  display: inline-block;
+  background: #e8f5ec;
+  color: #244b35;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  margin-bottom: 6px;
+}
+
+.ai-title-group h2 {
+  margin: 0 0 4px;
+  font-size: 22px;
+  color: #172a25;
+}
+
+.ai-subtitle {
+  margin: 0;
+  color: #64806c;
+  font-size: 13px;
+}
+
+.refresh-ai-btn {
+  background: #f1f6f2;
+  color: #244b35;
+  border: 1px solid #d4e5d8;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.refresh-ai-btn:hover {
+  background: #244b35;
+  color: #ffffff;
+}
+
+.ai-coach-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: linear-gradient(135deg, #1f3a2c 0%, #2b513d 100%);
+  color: #ffffff;
+  padding: 16px 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.ai-avatar {
+  font-size: 28px;
+  background: rgba(255, 255, 255, 0.15);
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ai-insight-text strong {
+  display: block;
+  font-size: 13px;
+  color: #9fe2b8;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+
+.ai-insight-text p {
+  margin: 0 0 4px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #f1f8f3;
+}
+
+.ai-feedback-note {
+  color: #cdecd6;
+  font-size: 12px;
+}
+
+.ai-metrics-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.ai-metric-box {
+  background: #f8faf8;
+  border: 1px solid #e2ebe4;
+  padding: 14px 18px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-label {
+  font-size: 12px;
+  color: #64806c;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.metric-val {
+  font-size: 24px;
+  font-weight: 800;
+  color: #172a25;
+}
+
+.metric-val small {
+  font-size: 13px;
+  font-weight: 600;
+  color: #7b897f;
+}
+
+.metric-hint {
+  font-size: 11px;
+  color: #7b897f;
+  margin-top: 4px;
+}
+
+.ai-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .ai-details-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ai-card {
+  background: #fbfdfb;
+  border: 1px solid #e2ebe4;
+  border-radius: 12px;
+  padding: 18px;
+}
+
+.card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #eef3ee;
+}
+
+.card-top h4 {
+  margin: 0;
+  font-size: 15px;
+  color: #172a25;
+}
+
+.focus-pill {
+  font-size: 11px;
+  background: #e3f2e7;
+  color: #244b35;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 10px;
+}
+
+.routine-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.routine-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #ffffff;
+  border: 1px solid #eaf0eb;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.routine-main strong {
+  display: block;
+  color: #243b2d;
+}
+
+.routine-main span {
+  font-size: 12px;
+  color: #7b897f;
+}
+
+.intensity-tag {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 6px;
+  text-transform: capitalize;
+}
+
+.intensity-tag.heavy,
+.intensity-tag.high {
+  background: #ffeae8;
+  color: #c92a2a;
+}
+
+.intensity-tag.moderate,
+.intensity-tag.moderate-high {
+  background: #fff4e5;
+  color: #d9730d;
+}
+
+.intensity-tag.low {
+  background: #e6fcf5;
+  color: #0ca678;
+}
+
+.macro-bar-container {
+  margin-bottom: 16px;
+}
+
+.macro-labels {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #415548;
+  margin-bottom: 8px;
+}
+
+.macro-progress {
+  display: flex;
+  height: 10px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #e8eee9;
+}
+
+.macro-seg.protein {
+  background: #3b82f6;
+}
+
+.macro-seg.carbs {
+  background: #eab308;
+}
+
+.macro-seg.fats {
+  background: #10b981;
+}
+
+.nutrition-tips strong {
+  font-size: 12px;
+  color: #243b2d;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.nutrition-tips ul {
+  padding-left: 18px;
+  margin: 0;
+  font-size: 13px;
+  color: #55685d;
+  line-height: 1.5;
+  display: grid;
+  gap: 4px;
+}
