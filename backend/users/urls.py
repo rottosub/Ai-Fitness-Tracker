@@ -5,7 +5,8 @@ from .views import (
     FitnessActivityView,
     FitnessActivityDetailView,
     BMIView,
-    FitnessSummaryView
+    FitnessSummaryView,
+    AIRecommendationView
 )
 
 urlpatterns = [
@@ -15,4 +16,5 @@ urlpatterns = [
     path("activities/<int:pk>/", FitnessActivityDetailView.as_view(), name="activity-detail"),
     path("summary/", FitnessSummaryView.as_view(), name="fitness-summary"),
     path("bmi/", BMIView.as_view(), name="bmi"),
+    path("ai/recommendations/", AIRecommendationView.as_view(), name="ai-recommendations"),
 ]

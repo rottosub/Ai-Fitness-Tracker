@@ -10,6 +10,7 @@ from .serializers import (
     ProfileSerializer,
     FitnessActivitySerializer
 )
+from .ai_coach import generate_fitness_plan
 
 
 class RegisterView(APIView):
@@ -195,3 +196,27 @@ class FitnessSummaryView(APIView):
             "average_calories_burned": avg_calories,
             "latest_activity_date": latest.activity_date if latest else None
         })
+
+
+class AIRecommendationView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        profile = request.user.profile
+        activities = FitnessActivity.objects.filter(user=request.user)
+
+        summary = activities.aggregate(
+            total_steps=Sum("steps"),
+            total_workout_minutes=Sum("workout_duration"),
+            total_calories_burned=Sum("calories_burned")
+        )
+
+        summary_data = {
+            "total_steps": summary["total_steps"] or 0,
+            "total_workout_minutes": summary["total_workout_minutes"] or 0,
+            "total_calories_burned": summary["total_calories_burned"] or 0,
+            "activity_records": activities.count()
+        }
+
+        plan = generate_fitness_plan(request.user, profile, summary_data)
+        return Response(plan, status=status.HTTP_200_OK)
