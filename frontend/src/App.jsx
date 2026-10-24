@@ -3,6 +3,7 @@ import "./App.css";
 import Login from "./Login";
 import Register from "./Register";
 import LogActivityModal from "./LogActivityModal";
+import EditProfileModal from "./EditProfileModal";
 import AICoachCard from "./AICoachCard";
 
 const API_BASE = "http://127.0.0.1:8000/api";
@@ -29,6 +30,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [fetchError, setFetchError] = useState("");
   const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   const handleLogout = useCallback(() => {
     sessionStorage.removeItem("accessToken");
@@ -179,6 +181,14 @@ function App() {
               <strong>{profile?.username || "My Dashboard"}</strong>
               {profile?.goal && <small className="user-goal-pill">{profile.goal}</small>}
             </div>
+            <button
+              type="button"
+              className="edit-profile-btn"
+              onClick={() => setIsProfileModalOpen(true)}
+              title="Edit Profile Settings"
+            >
+              ⚙ Edit
+            </button>
             <button type="button" onClick={handleLogout} className="logout-btn">
               Logout
             </button>
@@ -201,13 +211,22 @@ function App() {
             <p>
               Goal: <strong>{profile?.goal || "Stay Active & Healthy"}</strong> · Weight: {profile?.weight || "--"} kg · Height: {profile?.height || "--"} cm
             </p>
-            <button
-              type="button"
-              className="quick-log-btn"
-              onClick={() => setIsActivityModalOpen(true)}
-            >
-              + Log New Workout
-            </button>
+            <div className="welcome-actions">
+              <button
+                type="button"
+                className="quick-log-btn"
+                onClick={() => setIsActivityModalOpen(true)}
+              >
+                + Log Workout
+              </button>
+              <button
+                type="button"
+                className="quick-profile-btn"
+                onClick={() => setIsProfileModalOpen(true)}
+              >
+                Update Profile
+              </button>
+            </div>
           </div>
 
           <div className="welcome-icon">✦</div>
@@ -355,6 +374,14 @@ function App() {
           onClose={() => setIsActivityModalOpen(false)}
           onActivityLogged={fetchDashboardData}
           token={token}
+        />
+
+        <EditProfileModal
+          isOpen={isProfileModalOpen}
+          onClose={() => setIsProfileModalOpen(false)}
+          profile={profile}
+          token={token}
+          onProfileUpdated={fetchDashboardData}
         />
 
         <footer>
